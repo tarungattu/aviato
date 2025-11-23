@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { Loader } from '@react-three/drei';
 import World from './components/World';
 import Overlay from './components/Overlay';
-import { SectionId } from './types';
+import { SectionId, WeatherType } from './types';
 
 // Simple check for reduced motion preference
 const useReducedMotion = () => {
@@ -32,8 +32,10 @@ const useIsMobile = () => {
 
 const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<SectionId>('home');
-  const [isFlying, setIsFlying] = useState(false);
+  const [isFlying, setIsFlying] = useState(false); // Initial start flight
   const [hasStarted, setHasStarted] = useState(false);
+  const [freeFlightMode, setFreeFlightMode] = useState(false);
+  const [weather, setWeather] = useState<WeatherType>('midnight'); // Default to original dark theme
   
   const isReducedMotion = useReducedMotion();
   const isMobile = useIsMobile();
@@ -47,8 +49,14 @@ const App: React.FC = () => {
     }, 800);
   };
 
-  // Keyboard navigation
+  const toggleFreeFlight = () => {
+    setFreeFlightMode(!freeFlightMode);
+  };
+
+  // Keyboard navigation for sections (only when NOT in free flight)
   useEffect(() => {
+    if (freeFlightMode) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       const sections: SectionId[] = ['home', 'experience', 'skills', 'projects', 'contact'];
       const currentIndex = sections.indexOf(activeSection);
@@ -63,7 +71,7 @@ const App: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeSection]);
+  }, [activeSection, freeFlightMode]);
 
   return (
     <div className="relative w-full h-screen bg-bgPrimary">
@@ -79,6 +87,8 @@ const App: React.FC = () => {
               activeSection={activeSection} 
               isReducedMotion={isReducedMotion} 
               isFlying={isFlying || hasStarted}
+              freeFlightMode={freeFlightMode}
+              weather={weather}
             />
           </Suspense>
         </Canvas>
@@ -103,6 +113,10 @@ const App: React.FC = () => {
         isMobile={isMobile} 
         onStartFlight={handleStartFlight}
         hasStarted={hasStarted}
+        freeFlightMode={freeFlightMode}
+        onToggleFreeFlight={toggleFreeFlight}
+        weather={weather}
+        setWeather={setWeather}
       />
     </div>
   );

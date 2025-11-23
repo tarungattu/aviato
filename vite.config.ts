@@ -3,10 +3,9 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', '');
-  return {
+    const env = loadEnv(mode, '.', '');
+    return {
       base: '/aviato/',
-      
       server: {
         port: 3000,
         host: '0.0.0.0',

@@ -1,5 +1,6 @@
 
 export type SectionId = 'home' | 'experience' | 'skills' | 'projects' | 'contact';
+export type WeatherType = 'day' | 'sunset' | 'midnight' | 'rainy' | 'sakura';
 
 export interface Project {
   title: string;

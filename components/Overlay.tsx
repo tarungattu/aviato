@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { SectionId } from '../types';
+import { SectionId, WeatherType } from '../types';
 import { portfolioData } from '../data';
-import { Linkedin, Mail, Github } from 'lucide-react';
+import { Linkedin, Mail, Github, Plane, X, Info, Sun, Moon, CloudSun, CloudRain, Flower } from 'lucide-react';
 import ProjectCard from './ProjectCard';
 
 interface OverlayProps {
@@ -11,9 +11,23 @@ interface OverlayProps {
   isMobile: boolean;
   onStartFlight: () => void;
   hasStarted: boolean;
+  freeFlightMode: boolean;
+  onToggleFreeFlight: () => void;
+  weather: WeatherType;
+  setWeather: (w: WeatherType) => void;
 }
 
-const Overlay: React.FC<OverlayProps> = ({ activeSection, onNavigate, isMobile, onStartFlight, hasStarted }) => {
+const Overlay: React.FC<OverlayProps> = ({ 
+  activeSection, 
+  onNavigate, 
+  isMobile, 
+  onStartFlight, 
+  hasStarted,
+  freeFlightMode,
+  onToggleFreeFlight,
+  weather,
+  setWeather
+}) => {
   const [scrollOpacity, setScrollOpacity] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +52,7 @@ const Overlay: React.FC<OverlayProps> = ({ activeSection, onNavigate, isMobile, 
     bg-bgSecondary/90 backdrop-blur-xl border-l border-primary/10 
     text-gray-100 px-8 pb-8 overflow-y-auto custom-scroll 
     transition-transform duration-1000 cubic-bezier(0.2, 0.8, 0.2, 1)
-    ${activeSection === 'home' && !isMobile ? 'translate-x-full' : 'translate-x-0'}
+    ${(activeSection === 'home' && !isMobile) || freeFlightMode ? 'translate-x-full' : 'translate-x-0'}
     z-10 flex flex-col
     pt-32
   `;
@@ -46,11 +60,13 @@ const Overlay: React.FC<OverlayProps> = ({ activeSection, onNavigate, isMobile, 
   const NavBtn = ({ id, label }: { id: SectionId; label: string }) => (
     <button
       onClick={() => onNavigate(id)}
+      disabled={freeFlightMode}
       className={`
         px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300
         ${activeSection === id 
           ? 'bg-primary text-white shadow-[0_0_15px_rgba(139,92,246,0.5)]' 
           : 'bg-bgSecondary/50 text-gray-400 hover:text-white hover:bg-bgSecondary'}
+        ${freeFlightMode ? 'opacity-50 cursor-not-allowed' : ''}
       `}
       aria-current={activeSection === id ? 'page' : undefined}
     >
@@ -62,22 +78,109 @@ const Overlay: React.FC<OverlayProps> = ({ activeSection, onNavigate, isMobile, 
     <>
       {/* Top Navigation Bar */}
       <nav className="absolute top-0 left-0 w-full z-50 p-6 flex justify-between items-center bg-gradient-to-b from-bgPrimary/90 to-transparent pointer-events-none">
-        <div className="text-2xl font-bold text-primary pointer-events-auto cursor-pointer drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]" onClick={() => onNavigate('home')}>
+        <div className="text-2xl font-bold text-primary pointer-events-auto cursor-pointer drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]" onClick={() => !freeFlightMode && onNavigate('home')}>
           TG
         </div>
-        <div className="flex gap-2 pointer-events-auto flex-wrap justify-end">
-          <NavBtn id="home" label="Home" />
-          <NavBtn id="experience" label="Exp" />
-          <NavBtn id="skills" label="Skills" />
-          <NavBtn id="projects" label="Work" />
-          <NavBtn id="contact" label="Contact" />
+        <div className="flex gap-2 pointer-events-auto flex-wrap justify-end items-center">
+          {!freeFlightMode && (
+            <>
+              <NavBtn id="home" label="Home" />
+              <NavBtn id="experience" label="Exp" />
+              <NavBtn id="skills" label="Skills" />
+              <NavBtn id="projects" label="Work" />
+              <NavBtn id="contact" label="Contact" />
+            </>
+          )}
+          
+          <button
+            onClick={onToggleFreeFlight}
+            className={`
+              ml-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2
+              ${freeFlightMode 
+                ? 'bg-red-500/80 text-white hover:bg-red-600' 
+                : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/50'}
+            `}
+          >
+            {freeFlightMode ? <X size={16} /> : <Plane size={16} />}
+            {freeFlightMode ? 'Exit Flight' : 'Free Flight'}
+          </button>
         </div>
       </nav>
 
-      {/* Main Home Hero */}
+      {/* Free Flight HUD */}
+      {freeFlightMode && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-4 w-full px-4 pointer-events-none">
+           
+           {/* Flight Controls Info */}
+           <div className="bg-bgSecondary/80 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 text-center animate-fade-in-up pointer-events-auto shadow-2xl">
+             <div className="flex items-center justify-center gap-2 text-primary font-bold mb-3">
+               <Info size={18} /> Flight Controls
+             </div>
+             <div className="flex gap-4 md:gap-8 text-sm text-gray-300 font-mono">
+               <div className="flex flex-col items-center">
+                 <span className="text-white border border-white/20 px-2 rounded mb-1">↑ / W</span>
+                 <span className="text-xs">Pitch Down</span>
+               </div>
+               <div className="flex flex-col items-center">
+                 <span className="text-white border border-white/20 px-2 rounded mb-1">↓ / S</span>
+                 <span className="text-xs">Pitch Up</span>
+               </div>
+               <div className="flex flex-col items-center">
+                 <span className="text-white border border-white/20 px-2 rounded mb-1">← / A</span>
+                 <span className="text-xs">Roll Left</span>
+               </div>
+               <div className="flex flex-col items-center">
+                 <span className="text-white border border-white/20 px-2 rounded mb-1">→ / D</span>
+                 <span className="text-xs">Roll Right</span>
+               </div>
+             </div>
+           </div>
+
+           {/* Weather Controls */}
+           <div className="bg-bgSecondary/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex gap-2 pointer-events-auto shadow-lg">
+              <button 
+                onClick={() => setWeather('day')}
+                className={`p-2 rounded-full transition-colors ${weather === 'day' ? 'bg-sky-500 text-white' : 'text-gray-400 hover:bg-white/10'}`}
+                title="Day Mode"
+              >
+                <Sun size={20} />
+              </button>
+              <button 
+                onClick={() => setWeather('sunset')}
+                className={`p-2 rounded-full transition-colors ${weather === 'sunset' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:bg-white/10'}`}
+                title="Sunset Mode"
+              >
+                <CloudSun size={20} />
+              </button>
+              <button 
+                onClick={() => setWeather('midnight')}
+                className={`p-2 rounded-full transition-colors ${weather === 'midnight' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-white/10'}`}
+                title="Midnight Mode"
+              >
+                <Moon size={20} />
+              </button>
+               <button 
+                onClick={() => setWeather('rainy')}
+                className={`p-2 rounded-full transition-colors ${weather === 'rainy' ? 'bg-slate-600 text-white' : 'text-gray-400 hover:bg-white/10'}`}
+                title="Rainy Mode"
+              >
+                <CloudRain size={20} />
+              </button>
+               <button 
+                onClick={() => setWeather('sakura')}
+                className={`p-2 rounded-full transition-colors ${weather === 'sakura' ? 'bg-pink-400 text-white' : 'text-gray-400 hover:bg-white/10'}`}
+                title="Sakura Mode"
+              >
+                <Flower size={20} />
+              </button>
+           </div>
+        </div>
+      )}
+
+      {/* Main Home Hero (Hidden in Free Flight) */}
       <div 
         className={`absolute top-1/2 left-4 md:left-24 transform -translate-y-1/2 z-0 transition-opacity duration-700 ease-in-out pointer-events-none
-        ${activeSection === 'home' ? 'opacity-100 delay-300' : 'opacity-0'}`}
+        ${activeSection === 'home' && !freeFlightMode ? 'opacity-100 delay-300' : 'opacity-0'}`}
       >
         <h1 className="text-6xl md:text-8xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-secondary mb-4 drop-shadow-lg">
           {portfolioData.hero.title}
@@ -101,10 +204,10 @@ const Overlay: React.FC<OverlayProps> = ({ activeSection, onNavigate, isMobile, 
         </div>
       </div>
 
-      {/* Side Content Panel */}
+      {/* Side Content Panel (Hidden in Free Flight) */}
       <aside 
         ref={scrollContainerRef}
-        className={activeSection === 'home' ? 'hidden' : panelClass}
+        className={panelClass}
         onScroll={handleScroll}
       >
         
