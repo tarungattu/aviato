@@ -1,0 +1,5 @@
+{
+  "name": "Skyger Portfolio 3D",
+  "description": "A 3D interactive portfolio using React Three Fiber, featuring a flying plane navigation metaphor and content from Tarun Gattu's profile.",
+  "requestFramePermissions": []
+}
